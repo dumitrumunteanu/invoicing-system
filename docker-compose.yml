@@ -1,0 +1,81 @@
+version: '3'
+services:
+  invoicing-system:
+    image: invoicing-system:latest
+    container_name: 'invoicing_system'
+    ports:
+      - '8000:80'
+    environment:
+      APP_KEY: 'base64:mjxHESWH5tJitwdMRnJgEb+uujHFFYn5xFFJyZsYzsA='
+
+#      TELESCOPE_ENABLED: 'true'
+
+      DB_CONNECTION: 'pgsql'
+      DB_HOST: 'invoicing_database'
+      DB_PORT: '5432'
+      DB_DATABASE: 'invoicing_db'
+      DB_USERNAME: 'laravel'
+      DB_PASSWORD: 'SRN9J05Vwo0c40B'
+
+      BROADCAST_DRIVER: redis
+      CACHE_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+
+      REDIS_HOST: 'invoicing_system_redis'
+
+      MAIL_HOST: 'mailpit'
+#      MAIL_MAILER:
+#      MAIL_HOST:
+#      MAIL_PORT:
+#      MAIL_USERNAME:
+#      MAIL_PASSWORD:
+#      MAIL_ENCRYPTION:
+#      MAIL_FROM_ADDRESS:
+    volumes:
+      -  '.:/var/www/html'
+    networks:
+      - invoicing
+    depends_on:
+      - pgsql
+      - redis
+  pgsql:
+    image: 'postgres:13'
+    container_name: 'invoicing_database'
+    ports:
+      - '8010:5432'
+    environment:
+      POSTGRES_DB: 'invoicing_db'
+      POSTGRES_USER: 'laravel'
+      POSTGRES_PASSWORD: 'SRN9J05Vwo0c40B'
+    volumes:
+      - './data/postgresql/data:/var/lib/postgresql/data'
+    networks:
+      - invoicing
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "invoicing_db", "-U", "laravel"]
+  redis:
+    image: 'redis:alpine'
+    container_name: 'invoicing_system_redis'
+    ports:
+      - '9000:6379'
+    volumes:
+      - './data/redis/data:/data'
+    networks:
+      - invoicing
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+  mailpit:
+    image: 'axllent/mailpit:latest'
+    container_name: 'mailpit'
+    ports:
+      - '8090:8025'
+#    volumes:
+#      - './data/mailpit/data:/data'
+#    environment:
+#      MP_DATA_FILE: '/data/mailpit.db'
+    networks:
+      - invoicing
+networks:
+  invoicing:
+    driver: bridge
