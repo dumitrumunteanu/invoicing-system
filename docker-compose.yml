@@ -5,6 +5,7 @@ services:
     container_name: 'invoicing_system'
     ports:
       - '8000:80'
+      - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
     environment:
       APP_KEY: 'base64:mjxHESWH5tJitwdMRnJgEb+uujHFFYn5xFFJyZsYzsA='
 
